@@ -16,7 +16,7 @@
   (cons (make-immutable-hash) enclosing))
 
 ; built-in functions in our interpreter
-(define built-in-names '(define lambda set! + - / * remainder modulo and or))
+(define built-in-names '(define lambda set! quote + - / * remainder modulo and or))
 
 (define (get-global-env)
   (let ((global-frame (make-immutable-hash (map (lambda (x) (cons x 'BUILT-IN-FUNCTION)) built-in-names))))
@@ -74,6 +74,10 @@
 ; checks function name
 (define (sym-lookup expr env-id env-map)
   (cond ((eq? (first expr) 'define) (my-define expr env-id env-map))
+        ((eq? (first expr) 'set!) (if (hash-has-key? (car (hash-ref env-map env-id)) (second expr))
+                                      (hash-set (hash-remove (car (hash-ref env-map env-id)) expr) (second expr) (third expr))
+                                      (error (string-append (symbol->string (second expr)) " is undefined."))))   ;;;
+        ((eq? (first expr) 'quote) (second expr))
         ((eq? (first expr) '+) (+ (car (my-eval (second expr) env-id env-map)) (car (my-eval (third expr) env-id env-map))))
         ((eq? (first expr) '-) (- (car (my-eval (second expr) env-id env-map)) (car (my-eval (third expr) env-id env-map))))
         ((eq? (first expr) '*) (* (car (my-eval (second expr) env-id env-map)) (car (my-eval (third expr) env-id env-map))))
